@@ -1,32 +1,21 @@
-import requests
+import subprocess
+import datetime
 
-response = requests.get('https://mdn.github.io/learning-area/javascript/oojs/json/superheroes.json')
-heroes = response.json()
+# Obtener la hora actual
+current_hour = datetime.datetime.now().hour
 
-for hero in heroes['members']:
-    if hero['name'] == 'Eternal Flame':
-        print(f"El superpoder de Eternal Flame es: {hero['powers'][0]}")
-        break
+# Calcular el rango de tiempo objetivo
+start_hour = (current_hour - 1) % 24
+end_hour = current_hour % 24
 
+# Ejecutar el comando para obtener los intentos fallidos de inicio de sesión
+command = f'grep "Failed password" /var/log/auth.log | grep "sshd" | awk \'$0 >= "May 29 {start_hour}:00:00" && $0 <= "May 29 {end_hour}:59:59"\''
+process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+output, error = process.communicate()
 
-import requests
+# Contar los intentos fallidos de inicio de sesión
+failed_attempts = output.decode().count('\n')
 
-url = 'https://mdn.github.io/learning-area/javascript/oojs/json/superheroes.json'
-response = requests.get(url)
-
-if response.status_code == 200:
-    data = response.json()
-    total_powers = sum(len(hero['powers']) for hero in data['members'])
-    ganador = None
-    probabilidad_mayor = 0
-    for heroe in data['members']:
-        probabilidad = len(heroe['powers']) / total_powers
-        print(f"{heroe['name']} probabilidad de ganar: {probabilidad}")
-        if probabilidad > probabilidad_mayor:
-            probabilidad_mayor = probabilidad
-            ganador = heroe
-    print(f"\n¡El ganador del torneo de héroes campeones DRY es: {ganador['name']}!")
-else:
-    print(f"La solicitud falló con el error {response.status_code}")
-
+# Imprimir el resultado
+print(f"La cantidad total de intentos fallidos de inicio de sesión en la última hora cerrada es: {failed_attempts}")
 
